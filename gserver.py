@@ -7,8 +7,15 @@ banner = """
 == Guessing Game v1.0 ==
 Enter your guess:"""
 
-def generate_random_int(low, high):
-    return random.randint(low, high)
+def generate_random_int(difficulty):
+    if difficulty == "easy":
+        return random.randint(1, 50)
+    elif difficulty == "normal":
+        return random.randint(1, 100)
+    elif difficulty == "hard":
+        return random.randint(1, 200)
+    else:
+        raise ValueError("Invalid difficulty level")
 
 # initialize the socket object
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -22,9 +29,10 @@ while True:
     if conn is None:
         print("waiting for connection..")
         conn, addr = s.accept()
-        guessme = generate_random_int(1,100)
+        difficulty = conn.recv(1024).decode().strip().lower()
+        guessme = generate_random_int(difficulty)
         print(f"new client: {addr[0]}")
-        # cheat_str = f"==== number to guess is {guessme} \n" + banner 
+        # cheat_str = f"==== number to guess is {guessme} \n" + banner
         # conn.sendall(cheat_str.encode())
         conn.sendall(banner.encode())
     else:
@@ -42,6 +50,3 @@ while True:
         elif guess < guessme:
             conn.sendall(b"Guess Higher!\nenter guess:")
             continue
-
-
-
