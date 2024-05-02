@@ -1,0 +1,4 @@
+Kevin,750,hard
+Lawrence,500,normal
+Lenard,600,easy
+192.168.1.229,47,easy
