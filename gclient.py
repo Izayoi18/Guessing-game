@@ -1,47 +1,30 @@
 import socket
 
-host = "192.168.1.229"
+host = "192.168.1.229"  # Change to the IP address of the server
 port = 7777
 
-while True:
-    s = socket.socket()
-    try:
-        s.connect((host, port))
+try:
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.connect((host, port))
 
-        # received the banner
-        data = s.recv(1024)
-        # print banner
-        print(data.decode().strip())
+    # Send difficulty level to the server
+    difficulty = input("Enter difficulty level (easy/normal/hard): ")
+    s.sendall(difficulty.encode())
 
-        while True:
-            # Input from the user
-            user_input = input("").strip()
+    # Receive and print the banner from the server
+    data = s.recv(1024)
+    print(data.decode().strip())
 
-            s.sendall(user_input.encode())
-            reply = s.recv(1024).decode().strip()
-
-            if not reply:
-                print("Server disconnected.")
-                break
-
-            if "Correct" in reply:
-                print(reply)
-                break
-
-            print(reply)
-
-        # Ask the user if they want to play again or quit
-        print("\n")
-        print("Do you want to play(1) or quit(2):")
-
-        choice = input("Enter corresponding number: ")
-        if choice != "1":
-            print("Thank you for playing the Game.")
+    while True:
+        user_input = input("Enter your guess: ").strip()
+        s.sendall(user_input.encode())
+        reply = s.recv(1024).decode().strip()
+        print(reply)
+        if "Correct" in reply:
             break
 
-    except ConnectionAbortedError:
-        print("Connection was aborted by the software in your host machine. Please try again.")
-    except ConnectionResetError:
-        print("Connection was reset by the server. Please try again.")
-    finally:
-        s.close()
+except ConnectionError as e:
+    print(f"Connection error: {e}")
+
+finally:
+    s.close()

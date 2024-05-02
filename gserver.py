@@ -17,32 +17,45 @@ def generate_random_int(difficulty):
     else:
         raise ValueError("Invalid difficulty level")
 
-# initialize the socket object
+# Initialize the socket object
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.bind((host, port))
 s.listen(5)
 
-print(f"server is listening in port {port}")
+print(f"Server is listening on port {port}")
 guessme = 0
 conn = None
+leaderboard = {}  # Dictionary to store username and score
+
 while True:
     if conn is None:
-        print("waiting for connection..")
+        print("Waiting for connection..")
         conn, addr = s.accept()
+        print(f"New client: {addr[0]}")
+        conn.sendall(banner.encode())
         difficulty = conn.recv(1024).decode().strip().lower()
         guessme = generate_random_int(difficulty)
-        print(f"new client: {addr[0]}")
-        # cheat_str = f"==== number to guess is {guessme} \n" + banner
-        # conn.sendall(cheat_str.encode())
-        conn.sendall(banner.encode())
+        print(f"Difficulty level selected: {difficulty}")
+        attempts = 0  # Counter for the number of attempts
     else:
         client_input = conn.recv(1024)
         guess = int(client_input.decode().strip())
+        attempts += 1
         print(f"User guess attempt: {guess}")
         if guess == guessme:
             conn.sendall(b"Correct Answer!")
+            # Score calculation: Less attempts = higher score
+            score = 1000 // attempts  # Adjust as needed for scaling
+            username = addr[0]  # You can prompt for username if needed
+            leaderboard[username] = score
             conn.close()
             conn = None
+            print("User disconnected.")
+            print("Leaderboard:")
+            # Display leaderboard sorted by score
+            sorted_leaderboard = sorted(leaderboard.items(), key=lambda x: x[1], reverse=True)
+            for i, (name, score) in enumerate(sorted_leaderboard, start=1):
+                print(f"{i}. {name}: {score}")
             continue
         elif guess > guessme:
             conn.sendall(b"Guess Lower!\nenter guess: ")
